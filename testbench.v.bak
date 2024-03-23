@@ -1,0 +1,124 @@
+`timescale 1ns / 1ps
+
+module testbench;
+
+    // Inputs to the ALU
+    reg clk;
+    reg start;
+    reg [31:0] A;
+    reg [31:0] B;
+    reg [2:0] ALUop;
+
+    // Outputs from the ALU
+    wire [31:0] Result;
+    wire done;
+
+    // Instantiate the ALU module
+    alu uut (
+        .clk(clk),
+        .start(start),
+        .A(A),
+        .B(B),
+        .ALUop(ALUop),
+        .Result(Result),
+        .done(done)
+    );
+
+    // Generate clock signal
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; // Clock period is 10 ns
+    end
+
+    // Task for running MOD operation tests
+    task run_mod_test;
+        input [31:0] testA;
+        input [31:0] testB;
+        begin
+            // Wait for any previous operation to finish
+            while (!done) @(posedge clk);
+
+            // Start MOD operation
+            @(posedge clk);
+            start = 1; A = testA; B = testB; ALUop = 3'b111; // MOD opcode
+
+            // Wait for MOD operation to start
+            @(posedge clk);
+            start = 0;
+
+            // Wait for MOD operation to complete
+            while (!done) @(posedge clk);
+
+            // Display result and reset ALU for next operation
+            $display("MOD Result of %d %% %d is %d",A, B, Result);
+            A = 0; B = 0; ALUop = 3'b000; // Reset inputs for next test
+        end
+    endtask
+
+    // Test sequence
+    initial begin
+        // Initialize Inputs
+        A = 0; B = 0; ALUop = 3'b000;
+		       
+        run_mod_test(27, 25);
+        run_mod_test(19, 7);
+        run_mod_test(101, 34);
+		  run_mod_test(24,8);
+
+		  #10; $display("-------------------------------------");
+		
+       // Test AND Operation with Binary Examples
+        #10; A = 32'b10101010101010101010101010101010; B = 32'b01010101010101010101010101010101; ALUop = 3'b000;
+        #10; $display("AND Test 1: %b AND %b = %b", A, B, Result);
+		  #10; $display("-------------------------------------");
+		  
+        // Test OR Operation with Binary Examples
+        #10; A = 32'b10101010101010101010101010101010; B = 32'b01010101010101010101010101010101; ALUop = 3'b001;
+        #10; $display("OR Test 1: %b OR %b = %b", A, B, Result);
+        #10; $display("-------------------------------------");
+		  
+
+        // Test XOR Operation with Binary Examples
+        #10; A = 32'b10101010101010101010101010101010; B = 32'b01010101010101010101010101010101; ALUop = 3'b010;
+        #10; $display("XOR Test 1: %b XOR %b = %b", A, B, Result);
+		  #10; $display("-------------------------------------");
+
+        // Test NOR Operation with Binary Examples
+        #10; A = 32'b10101010101010101010101010101010; B = 32'b01010101010101010101010101010101; ALUop = 3'b011;
+        #10; $display("NOR Test 1: %b NOR %b = %b", A, B, Result);
+		  #10; $display("-------------------------------------");
+		  
+
+        // Test Addition Operation with Decimal Examples
+        #10; A = 32'd123; B = 32'd6; ALUop = 3'b101;
+        #10; $display("Addition Test 1: %d + %d = %d", A, B, Result);
+		   #10; A = 32'b111; B = 32'b001; ALUop = 3'b101;
+        #10; $display("Addition Test 2: %b + %b = %b", A, B, Result);
+		  #10; $display("-------------------------------------");
+
+        // Test Subtraction Operation with Decimal Examples
+        #10; A = 32'd321; B = 32'd300; ALUop = 3'b110;
+        #10; $display("Subtraction Test 1: %d - %d = %b", A, B, Result);
+		  #10; A = 32'b111; B = 32'b001; ALUop = 3'b110;
+        #10; $display("Subtraction Test 2: %b - %b = %b", A, B, Result);
+		  #10; A = 4'b0010; B = 4'b0100; // A = 2, B = 4
+        #10; $display("Subtraction Test 3: %d - %d = %b", A, B, Result);  
+
+		  
+		  #10; $display("-------------------------------------");
+		  
+		  ALUop = 3'b100; // Set ALUop to LESS THAN operation
+    #10; A = 32'd15; B = 32'd20; // 15 < 20
+    #10; $display("LESS THAN Test 1: Is %d < %d? Result: %b", A, B, Result[0]);
+    #10; A = 32'd200; B = 32'd150; // 200 < 150
+    #10; $display("LESS THAN Test 2: Is %d < %d? Result: %b", A, B, Result[0]);
+	 
+	 #10; $display("---------MOD EXAMPLES ARE ON THE TOP----------------------------------"); 
+	 
+
+        // Finish the simulation
+        #100;
+        $finish;
+    end
+
+endmodule

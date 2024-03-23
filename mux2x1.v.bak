@@ -1,0 +1,18 @@
+module mux2x1(
+    input [31:0] in0, in1,
+    input select,
+    output [31:0] out
+);
+    wire [31:0] not_select;
+    wire [31:0] and_out0, and_out1;
+
+    // Inverting select
+    not not_gate[31:0] (not_select, {32{select}});
+
+    // AND operations
+    and and_gate0[31:0] (and_out0, in0, not_select);
+    and and_gate1[31:0] (and_out1, in1, {32{select}});
+
+    // OR operation for final output
+    or or_gate[31:0] (out, and_out0, and_out1);
+endmodule

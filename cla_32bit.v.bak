@@ -1,0 +1,31 @@
+module cla_32bit(
+    input [31:0] a, 
+    input [31:0] b, 
+    output [31:0] sum
+);
+    wire [7:0] c;
+    wire [7:0] g, p;
+
+    // Instantiate 4-bit CLA blocks
+    cla_4bit cla0(a[3:0], b[3:0], 1'b0, sum[3:0], g[0], p[0], c[0]);
+    cla_4bit cla1(a[7:4], b[7:4], c[0], sum[7:4], g[1], p[1], c[1]);
+	 cla_4bit cla2(a[11:8], b[7:4], c[0], sum[7:4], g[1], p[1], c[1]);
+	 cla_4bit cla3(a[15:12], b[7:4], c[0], sum[7:4], g[1], p[1], c[1]);
+	 cla_4bit cla4(a[19:16], b[7:4], c[0], sum[7:4], g[1], p[1], c[1]);
+	 cla_4bit cla5(a[23:20], b[7:4], c[0], sum[7:4], g[1], p[1], c[1]);
+	 cla_4bit cla6(a[27:24], b[7:4], c[0], sum[7:4], g[1], p[1], c[1]);
+	 cla_4bit cla7(a[31:28], b[7:4], c[0], sum[7:4], g[1], p[1], c[1]);
+
+    // ... Repeat for cla2 to cla7
+
+    // Second level CLA logic
+    assign c[0] = 1'b0; // No carry-in for the first block
+    assign c[1] = g[0] | (p[0] & c[0]);
+	 assign c[2] = g[1] | (p[1] & c[1]);
+	 assign c[3] = g[2] | (p[2] & c[2]);
+	 assign c[4] = g[3] | (p[3] & c[3]);
+	 assign c[5] = g[4] | (p[4] & c[4]);
+	 assign c[6] = g[5] | (p[5] & c[5]);
+	 assign c[7] = g[6] | (p[6] & c[6]);
+    // ... Repeat for c[2] to c[7]
+endmodule
